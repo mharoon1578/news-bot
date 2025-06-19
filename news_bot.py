@@ -8,7 +8,7 @@ model = genai.GenerativeModel("models/gemini-1.5-flash")
 
 # === Prompt Template ===
 PROMPT = """
-You are a tech-savvy personal news assistant. Your task is to find and summarize the **top 5 tech news articles** that match my interests.
+You are a tech-savvy personal news assistant. Your task is to find and summarize the **top 5 latest tech news articles** that match my interests.
 
 🔍 My interests include:
 - Artificial Intelligence (especially open-source models and startups)
@@ -22,7 +22,7 @@ Please return a **clean list of 5 news items**, each with:
 2. A **1-sentence summary** (keep it clear and jargon-free)
 3. A **clickable source URL** — wrapped like this: `<https://example.com>`
 
-The tone should be professional and friendly, like you're curating news for a developer or indie founder.
+The tone should be professional and friendly, like you're curating news for a developer or indie founderand news must be latest.
 """
 
 # === Generate News Summary ===
