@@ -1,16 +1,17 @@
 import os
-import requestsAdd commentMore actions
+import feedparser
+import requests
 import google.generativeai as genai
 
 # --- CONFIG ---
-KEYWORDS = ["artificial intelligence", "open-source AI", "growth hacking", "startups"]Add commentMore actions
+KEYWORDS = ["artificial intelligence", "open-source AI", "growth hacking", "startups"]
 MAX_ARTICLES = 5
 
 # --- Setup Gemini Flash ---
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))Add commentMore actions
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 model = genai.GenerativeModel("models/gemini-1.5-flash")
 
-# --- Fetch News from Google RSS ---Add commentMore actions
+# --- Fetch News from Google RSS ---
 def fetch_articles():
     all_entries = []
     for keyword in KEYWORDS:
@@ -37,27 +38,22 @@ def summarize_article(entry):
 # --- Post to Discord ---
 def post_to_discord(messages):
     webhook_url = os.getenv("DISCORD_WEBHOOK_URL")
-
-
-
     for msg in messages:
         res = requests.post(webhook_url, json={"content": msg})
-        if res.status_code != 204:Add commentMore actions
+        if res.status_code != 204:
             print(f"❌ Failed to post to Discord: {res.status_code} - {res.text}")
         else:
             print("✅ Posted to Discord")
 
 # --- Main ---
 if __name__ == "__main__":
-
-
-    print("🔍 Fetching news...")Add commentMore actions
+    print("🔍 Fetching news...")
     articles = fetch_articles()
 
     print("🤖 Summarizing with Gemini Flash...")
     formatted_articles = [summarize_article(entry) for entry in articles]
 
     print("📨 Posting to Discord...")
-    post_to_discord(formatted_articles)Add commentMore actions
+    post_to_discord(formatted_articles)
 
     print("✅ Done.")
