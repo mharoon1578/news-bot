@@ -1,4 +1,4 @@
-name: Personal Tech News to Discord
+name: Daily AI News via Gemini Flash
 
 on:
   schedule:
@@ -21,9 +21,9 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install google-generativeai requests
+          pip install google-generativeai feedparser requests
 
-      - name: Run personal tech news bot
+      - name: Run news bot with Gemini Flash
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
