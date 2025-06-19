@@ -4,7 +4,7 @@ import requests
 import google.generativeai as genai
 
 # --- CONFIG ---
-KEYWORDS = ["artificial intelligence", "open-source AI", "growth hacking", "startups"]
+KEYWORDS = ["artificial intelligence", "open-source AI", "growth hacking", "startups", "New Ai Tools"]
 MAX_ARTICLES = 5
 
 # --- Setup Gemini Flash ---
@@ -33,17 +33,27 @@ def summarize_article(entry):
     except Exception as e:
         summary_text = "Summary unavailable."
         print(f"❌ Error with Gemini: {e}")
-    return f"**{title}**\n{summary_text}\n<{entry.link}>"
+    return {
+        "title": title,
+        "summary": summary_text,
+        "link": entry.link
+    }
+
+# --- Format Digest Message ---
+def format_bullet_digest(news_list):
+    message = "**🔹 Today's Top Tech News:**\n\n"
+    for i, item in enumerate(news_list, 1):
+        message += f"{i}. **{item['title']}**\n   {item['summary']} <{item['link']}>\n\n"
+    return message.strip()
 
 # --- Post to Discord ---
-def post_to_discord(messages):
+def post_to_discord(message):
     webhook_url = os.getenv("DISCORD_WEBHOOK_URL")
-    for msg in messages:
-        res = requests.post(webhook_url, json={"content": msg})
-        if res.status_code != 204:
-            print(f"❌ Failed to post to Discord: {res.status_code} - {res.text}")
-        else:
-            print("✅ Posted to Discord")
+    res = requests.post(webhook_url, json={"content": message})
+    if res.status_code != 204:
+        print(f"❌ Failed to post to Discord: {res.status_code} - {res.text}")
+    else:
+        print("✅ Posted to Discord")
 
 # --- Main ---
 if __name__ == "__main__":
@@ -51,9 +61,12 @@ if __name__ == "__main__":
     articles = fetch_articles()
 
     print("🤖 Summarizing with Gemini Flash...")
-    formatted_articles = [summarize_article(entry) for entry in articles]
+    summarized = [summarize_article(entry) for entry in articles]
+
+    print("🧾 Formatting digest...")
+    final_message = format_bullet_digest(summarized)
 
     print("📨 Posting to Discord...")
-    post_to_discord(formatted_articles)
+    post_to_discord(final_message)
 
     print("✅ Done.")
