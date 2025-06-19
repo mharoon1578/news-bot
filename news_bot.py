@@ -1,42 +1,49 @@
-import feedparser
-import requests
-from transformers import pipeline
 import os
+import requests
+import google.generativeai as genai
 
-# Keywords
-KEYWORDS = ["artificial intelligence", "open-source AI", "growth hacking", "startups"]
+# === Setup Gemini ===
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+model = genai.GenerativeModel("models/gemini-1.5-flash")
 
-# Summarizer setup
-summarizer = pipeline("summarization", model="sshleifer/distilbart-cnn-12-6")
+# === Prompt Template ===
+PROMPT = """
+You are a tech-savvy personal news assistant. Your task is to find and summarize the **top 5 tech news articles** that match my interests.
 
-# Fetch and parse RSS feed
-def fetch_articles():
-    all_entries = []
-    for keyword in KEYWORDS:
-        url = f"https://news.google.com/rss/search?q={keyword.replace(' ', '+')}&hl=en-US&gl=US&ceid=US:en"
-        feed = feedparser.parse(url)
-        all_entries.extend(feed.entries[:3])
-    return sorted(all_entries, key=lambda x: x.published_parsed, reverse=True)[:5]
+🔍 My interests include:
+- Artificial Intelligence (especially open-source models and startups)
+- Growth hacking strategies
+- Tech product launches or tools for indie developers
+- Startup ecosystem and founder stories
+- Emerging trends in deep learning, automation, and APIs
 
-# Clean HTML tags and summarize
-def summarize_article(entry):
-    content = entry.get("summary", "")
-    summary = summarizer(content, max_length=50, min_length=15, do_sample=False)[0]['summary_text']
-    return f"**{entry.title.strip()}**\n{summary.strip()}\n<{entry.link}>"
+Please return a **clean list of 5 news items**, each with:
+1. A **bold title**
+2. A **1-sentence summary** (keep it clear and jargon-free)
+3. A **source URL** (if known or assume realistic placeholder)
 
-# Send to Discord
-def post_to_discord(messages):
+The tone should be professional and friendly, like you're curating news for a developer or indie founder.
+"""
+
+# === Generate News Summary ===
+def get_news_from_gemini():
+    response = model.generate_content(PROMPT)
+    return response.text.strip()
+
+# === Send to Discord ===
+def post_to_discord(message):
     webhook_url = os.getenv("DISCORD_WEBHOOK_URL")
-    for msg in messages:
-        response = requests.post(webhook_url, json={"content": msg})
-        if response.status_code != 204:
-            print(f"Failed to post: {response.status_code}")
+    payload = {"content": message}
+    r = requests.post(webhook_url, json=payload)
+    if r.status_code != 204:
+        print(f"❌ Failed to post: {r.status_code} - {r.text}")
+    else:
+        print("✅ Posted to Discord!")
 
-# Run bot
+# === Main ===
 if __name__ == "__main__":
-    print("Fetching news...")
-    articles = fetch_articles()
-    formatted_news = [summarize_article(entry) for entry in articles]
-    print("Posting to Discord...")
-    post_to_discord(formatted_news)
-    print("Done.")
+    print("🚀 Generating tech news...")
+    news = get_news_from_gemini()
+    print("📨 Posting to Discord...")
+    post_to_discord(news)
+    print("✅ Done.")
