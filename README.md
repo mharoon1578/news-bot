@@ -1,167 +1,150 @@
-# News Bot
 
-## 📰 Introduction
+# 📰 News Bot – AI-Powered Daily News Summarizer
 
-This repository houses an automated **News Bot** designed to keep you updated with the latest news on specific topics.  
-Leveraging **Google News RSS feeds** for fetching articles and **Google Gemini 1.5 Flash** for concise summarization,  
-this bot efficiently delivers key insights directly to your **Discord channel**.  
-It runs automatically **daily using GitHub Actions**, ensuring you never miss important updates.
+This repository contains an **automated News Bot** that fetches the latest news articles from Google News RSS based on selected keywords, summarizes them using **Google Gemini 1.5 Flash**, and posts the summaries to a **Discord channel**.
+
+It runs **daily at 9 AM Pakistan Time (4 AM UTC)** via **GitHub Actions**, ensuring you receive concise, AI-generated news updates automatically.
 
 ---
 
-## 🚀 Features
+## ✨ Features
 
-- **Targeted News Fetching**: Retrieves news articles from Google News RSS feeds based on predefined keywords.  
-- **AI-Powered Summaries**: Uses Google Gemini 1.5 Flash to generate a one-sentence summary for each article.  
-- **Discord Integration**: Posts the summarized articles directly to a specified Discord channel via a webhook.  
-- **Automated Scheduling**: Runs daily at **9 AM Pakistan Time (4 AM UTC)** via GitHub Actions.  
-- **Customizable Content**: Easily adjust keywords and the number of articles to fetch.
+- **Smart News Retrieval**  
+  Gathers articles using Google News RSS for specific, customizable keywords.
 
----
+- **AI Summarization (Gemini Flash)**  
+  Summarizes each article into a single sentence using Google's Gemini 1.5 Flash model.
 
-## 🛠️ Technologies Used
+- **Discord Integration**  
+  Sends each summary directly to a specified Discord channel via webhook.
 
-- **Python** – Bot logic  
-- **Google Generative AI (Gemini 1.5 Flash)** – For advanced summarization  
-- **feedparser** – Parses RSS/Atom feeds  
-- **requests** – HTTP requests to Discord Webhook  
-- **GitHub Actions** – For automation  
-- **Discord** – Target platform for news updates
+- **Automated Daily Schedule**  
+  Runs automatically every day using GitHub Actions (no server or manual run required).
+
+- **Fully Configurable**  
+  Customize keywords and article limits in the Python script.
 
 ---
 
-## ⚙️ Setup and Installation
+## ⚙️ How It Works
 
-### Prerequisites
+1. **RSS Parsing**: Uses `feedparser` to pull articles from Google News.
+2. **Summarization**: Sends article title + snippet to Gemini Flash for summarizing.
+3. **Posting**: Sends the result to your Discord channel via a webhook.
 
-- Python 3.10+
-- Google Gemini API Key (from [Google AI Studio](https://aistudio.google.com/))
-- Discord Webhook URL (Settings → Integrations → Webhooks → New Webhook)
+---
 
-### Installation Steps
+## Technologies Used
+
+- **Python 3.10+**
+- **Google Generative AI (Gemini 1.5 Flash)**
+- **feedparser** (RSS handling)
+- **requests** (Webhook integration)
+- **GitHub Actions** (Automation and CI/CD)
+- **Discord Webhooks** (For notifications)
+
+---
+
+## Getting Started
+
+### 1. Fork or Clone This Repo
 
 ```bash
 git clone https://github.com/mharoon1578/news-bot.git
 cd news-bot
-````
-
-#### Create a Virtual Environment
-
-```bash
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
 ```
 
-#### Install Dependencies
+### 2. Set Your Secrets in GitHub
 
-```bash
-pip install -r requirements.txt
-```
+Go to your repository’s:
 
-> If `requirements.txt` is missing, use:
+**Settings → Secrets and variables → Actions → New repository secret**
 
-```
-google-generativeai
-feedparser
-requests
-```
+Add the following:
 
----
+- `GEMINI_API_KEY` – Your [Google AI Studio](https://makersuite.google.com/app/apikey) API Key
+- `DISCORD_WEBHOOK_URL` – Your Discord channel's webhook URL
 
-## Configure Environment Variables
+### 3. Done! GitHub Actions Will Handle the Rest
 
-### Local `.env` File
-
-Create a `.env` file in the root folder:
-
-```env
-GEMINI_API_KEY=your_google_gemini_api_key
-DISCORD_WEBHOOK_URL=your_discord_webhook_url
-```
-
-Install dotenv support (optional but recommended):
-
-```bash
-pip install python-dotenv
-```
-
-And load it in `news_bot.py`:
-
-```python
-from dotenv import load_dotenv
-load_dotenv()
-```
-
-### GitHub Secrets
-
-* Go to your repo → **Settings → Secrets and Variables → Actions**
-* Add:
-
-  * `GEMINI_API_KEY`
-  * `DISCORD_WEBHOOK_URL`
-
----
-
-## Usage
-
-### Run Locally
-
-```bash
-python news_bot.py
-```
-
-This fetches news, summarizes it, and posts to Discord using your `.env` file.
-
-### Run Automatically via GitHub Actions
-
-The workflow runs **daily at 9 AM Pakistan Time (UTC+5)**.
-To run it manually:
-
-1. Go to **Actions** tab
-2. Click **"Daily AI News via Gemini Flash"**
-3. Hit **"Run workflow"**
+- The bot will run **every day at 9 AM Pakistan Time**
+- You can also trigger it manually from the **Actions** tab in GitHub
 
 ---
 
 ## Configuration
 
-You can modify the following variables in `news_bot.py`:
+You can customize the bot by editing the `news_bot.py` file:
+
+### Keywords
 
 ```python
 KEYWORDS = ["artificial intelligence", "open-source AI", "growth hacking", "startups"]
+```
+
+> These are the search terms used to fetch news articles.
+
+### Max Articles
+
+```python
 MAX_ARTICLES = 5
 ```
 
-* `KEYWORDS`: List of topics you want to fetch news for
-* `MAX_ARTICLES`: Max number of articles per run
+> The number of articles to summarize and post each day.
 
 ---
 
-## 🤝 Contributing
+## Workflow (GitHub Actions)
 
-We welcome contributions! To contribute:
+```yaml
+# .github/workflows/main.yml
 
-1. Fork the repository
-2. Create a new branch:
+name: Daily AI News via Gemini Flash
 
-   ```bash
-   git checkout -b feature/your-feature
-   ```
-3. Make your changes
-4. Commit:
+on:
+  schedule:
+    - cron: '0 4 * * *' # 9 AM Pakistan Time (UTC+5)
+  workflow_dispatch:
 
-   ```bash
-   git commit -m 'Add feature: your-feature'
-   ```
-5. Push:
+jobs:
+  post-news:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
-   ```bash
-   git push origin feature/your-feature
-   ```
-6. Open a **Pull Request**
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install google-generativeai feedparser requests
+
+      - name: Run news bot with Gemini Flash
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: python news_bot.py
+```
+
+---
+
+## Contributing
+
+We welcome contributions to improve this bot!  
+To contribute:
+
+1. Fork the repo
+2. Create a branch: `git checkout -b feature/my-feature`
+3. Commit changes: `git commit -m "Add my feature"`
+4. Push to GitHub: `git push origin feature/my-feature`
+5. Open a Pull Request
 
 ---
 
 ## 📄 License
 
-This project is open-source under the **MIT License**.
+This project is open-source and licensed under the **MIT License**.  
